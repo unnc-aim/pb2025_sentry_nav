@@ -64,8 +64,11 @@ point_lio:
       plane_thr: 0.1                                    # 0.05, the threshold for plane criteria, the smaller, the flatter a plane
       match_s: 81.0
       ivox_grid_resolution: 0.5
-      gravity: [0.0, 0.5305473804473877, -0.8383715748786926]            # gravity to be aligned
-      gravity_init: [0.0, 0.5305473804473877, -0.8383715748786926]       # preknown gravity in the first IMU body frame, use when imu_en is False or start from a non-stationary state
+      # gravity: [0.0, 0.5305473804473877, -0.8383715748786926]            # gravity to be aligned
+      # gravity_init: [0.0, 0.5305473804473877, -0.8383715748786926]       # preknown gravity in the first IMU body frame, use when imu_en is False or start from a non-stationary state
+      # 修改后的配置
+      gravity: [-0.017, 0.709, -0.696]           # gravity to be aligned
+      gravity_init: [-0.017, 0.709, -0.696]      # preknown gravity in the first IMU body frame
       extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
       extrinsic_R: [ 1.0, 0.0, 0.0,
                      0.0, 1.0, 0.0,
@@ -119,7 +122,7 @@ terrain_analysis:
     absDyObsRelZThre: 0.2
     minDyObsVFOV: -28.0
     maxDyObsVFOV: 33.0
-    minDyObsPointNum: 1
+    minDyObsPointNum: 2
     noDataObstacle: False               # treat no data as obstacle
     noDataBlockSkipNum: 0
     minBlockPointNum: 10
@@ -159,7 +162,7 @@ fake_vel_transform:
     input_cmd_vel_topic: "cmd_vel_nav2_result"
     output_cmd_vel_topic: "cmd_vel"
     cmd_spin_topic: "cmd_spin"
-    init_spin_speed: 3.14
+    init_spin_speed: 0.70   # before: 3.14
 
 small_gicp_relocalization:
   ros__parameters:
@@ -334,16 +337,16 @@ controller_server:
     use_sim_time: False
     odom_topic: odometry
     controller_frequency: 20.0
-    min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
-    min_theta_velocity_threshold: 0.001
+    min_x_velocity_threshold: 0.01            # before: 0.001
+    min_y_velocity_threshold: 0.01            # before: 0.5
+    min_theta_velocity_threshold: 0.01        # before: 0.001
     failure_tolerance: 0.3
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.3
       movement_time_allowance: 10.0
     general_goal_checker:
       stateful: True
@@ -361,15 +364,15 @@ controller_server:
       rotation_kd: 0.3
       transform_tolerance: 0.1
       min_max_sum_error: 1.0
-      lookahead_dist: 2.0
+      lookahead_dist: 0.6                   # before: 0.6
       use_velocity_scaled_lookahead_dist: true
-      lookahead_time: 1.0
-      min_lookahead_dist: 0.5
-      max_lookahead_dist: 1.0
-      use_interpolation: false
+      lookahead_time: 1.2                   # before: 1.0
+      min_lookahead_dist: 0.4               # before: 0.5
+      max_lookahead_dist: 1.0               # before: 1.0
+      use_interpolation: true               # before: false
       use_rotate_to_heading: false
       use_rotate_to_heading_treshold: 0.1
-      min_approach_linear_velocity: 0.5
+      min_approach_linear_velocity: 0.1     # before: 0.5
       approach_velocity_scaling_dist: 1.0
       v_linear_min: -2.5
       v_linear_max: 2.5
@@ -380,7 +383,7 @@ controller_server:
       reduction_ratio_at_high_curvature: 0.5            # 高曲率时的速度降低比例。 0.5 (即减速 50%)
       curvature_forward_dist: 0.7                       # 前向距离，用于曲率计算
       curvature_backward_dist: 0.3                      # 后向距离，用于曲率计算
-      max_velocity_scaling_factor_rate: 0.9             # 速度缩放因子的最大变化率
+      max_velocity_scaling_factor_rate: 0.2             # 速度缩放因子的最大变化率
 
 local_costmap:
   local_costmap:
@@ -428,8 +431,8 @@ local_costmap:
         map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 4.0
-        inflation_radius: 0.7
+        cost_scaling_factor: 1.6    # before: 4.0
+        inflation_radius: 0.55      # before: 0.7
       always_send_full_costmap: False
 
 global_costmap:
@@ -476,8 +479,8 @@ global_costmap:
         map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 4.0
-        inflation_radius: 0.7
+        cost_scaling_factor: 1.6
+        inflation_radius: 0.55
       always_send_full_costmap: False
 
 # The yaml_filename does not need to be specified since it going to be set by defaults in launch.
@@ -566,13 +569,13 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [2.5, 2.5, 3.0]
-    min_velocity: [-2.5, -2.5, -3.0]
-    max_accel: [4.5, 4.5, 5.0]
-    max_decel: [-4.5, -4.5, -5.0]
+    max_velocity: [1.0, 0.8, 1.0]             # before: [2.5, 2.5, 3.0]
+    min_velocity: [-1.0, -0.8, -1.0]          # before: [-2.5, -2.5, -3.0]
+    max_accel: [3.0, 3.0, 3.0]                # before: [4.5, 4.5, 5.0]
+    max_decel: [-3.0, -3.0, -3.0]             # before: [-4.5, -4.5, -5.0]
     odom_topic: "odometry"
     odom_duration: 0.1
-    deadband_velocity: [0.0, 0.0, 0.0]
+    deadband_velocity: [0.02, 0.06, 0.05]      # before: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
 
 pb_teleop_twist_joy_node:

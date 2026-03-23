@@ -152,6 +152,7 @@ def generate_launch_description():
             {"pcd_save.pcd_save_en": True},
         ],
         arguments=["--ros-args", "--log-level", log_level],
+        additional_env={"LD_PRELOAD": "/lib/x86_64-linux-gnu/libusb-1.0.so.0"},
     )
 
     start_static_transform_node = Node(
