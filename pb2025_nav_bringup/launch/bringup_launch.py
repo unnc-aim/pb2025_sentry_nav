@@ -50,6 +50,9 @@ def generate_launch_description():
     use_composition = LaunchConfiguration("use_composition")
     use_respawn = LaunchConfiguration("use_respawn")
     log_level = LaunchConfiguration("log_level")
+    initial_pose_x = LaunchConfiguration("initial_pose_x")
+    initial_pose_y = LaunchConfiguration("initial_pose_y")
+    initial_pose_yaw = LaunchConfiguration("initial_pose_yaw")
 
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {"use_sim_time": use_sim_time, "yaml_filename": map_yaml_file}
@@ -136,6 +139,24 @@ def generate_launch_description():
         "log_level", default_value="info", description="log level"
     )
 
+    declare_initial_pose_x_cmd = DeclareLaunchArgument(
+        "initial_pose_x",
+        default_value="0.7",
+        description="Robot initial x position in the map frame",
+    )
+
+    declare_initial_pose_y_cmd = DeclareLaunchArgument(
+        "initial_pose_y",
+        default_value="0.5",
+        description="Robot initial y position in the map frame",
+    )
+
+    declare_initial_pose_yaw_cmd = DeclareLaunchArgument(
+        "initial_pose_yaw",
+        default_value="0.0",
+        description="Robot initial yaw in the map frame",
+    )
+
     # Specify the actions
     bringup_cmd_group = GroupAction(
         [
@@ -162,6 +183,9 @@ def generate_launch_description():
                     "autostart": autostart,
                     "use_respawn": use_respawn,
                     "params_file": params_file,
+                    "initial_pose_x": initial_pose_x,
+                    "initial_pose_y": initial_pose_y,
+                    "initial_pose_yaw": initial_pose_yaw,
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -179,6 +203,9 @@ def generate_launch_description():
                     "use_composition": use_composition,
                     "use_respawn": use_respawn,
                     "container_name": "nav2_container",
+                    "initial_pose_x": initial_pose_x,
+                    "initial_pose_y": initial_pose_y,
+                    "initial_pose_yaw": initial_pose_yaw,
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -216,6 +243,9 @@ def generate_launch_description():
     ld.add_action(declare_use_composition_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
+    ld.add_action(declare_initial_pose_x_cmd)
+    ld.add_action(declare_initial_pose_y_cmd)
+    ld.add_action(declare_initial_pose_yaw_cmd)
 
     # Add the actions to launch all of the navigation nodes
     ld.add_action(bringup_cmd_group)

@@ -35,6 +35,9 @@ def generate_launch_description():
     autostart = LaunchConfiguration("autostart")
     use_respawn = LaunchConfiguration("use_respawn")
     log_level = LaunchConfiguration("log_level")
+    initial_pose_x = LaunchConfiguration("initial_pose_x")
+    initial_pose_y = LaunchConfiguration("initial_pose_y")
+    initial_pose_yaw = LaunchConfiguration("initial_pose_yaw")
 
     # Variables
     lifecycle_nodes = ["map_saver"]
@@ -83,6 +86,24 @@ def generate_launch_description():
 
     declare_log_level_cmd = DeclareLaunchArgument(
         "log_level", default_value="info", description="log level"
+    )
+
+    declare_initial_pose_x_cmd = DeclareLaunchArgument(
+        "initial_pose_x",
+        default_value="0.7",
+        description="Robot initial x position in the map frame",
+    )
+
+    declare_initial_pose_y_cmd = DeclareLaunchArgument(
+        "initial_pose_y",
+        default_value="0.5",
+        description="Robot initial y position in the map frame",
+    )
+
+    declare_initial_pose_yaw_cmd = DeclareLaunchArgument(
+        "initial_pose_yaw",
+        default_value="0.0",
+        description="Robot initial yaw in the map frame",
     )
 
     start_map_saver_server_cmd = Node(
@@ -162,9 +183,9 @@ def generate_launch_description():
         output="screen",
         arguments=[
             "--x",
-            "0.0",
+            initial_pose_x,
             "--y",
-            "0.0",
+            initial_pose_y,
             "--z",
             "0.0",
             "--roll",
@@ -172,7 +193,7 @@ def generate_launch_description():
             "--pitch",
             "0.0",
             "--yaw",
-            "0.0",
+            initial_pose_yaw,
             "--frame-id",
             "map",
             "--child-frame-id",
@@ -189,6 +210,9 @@ def generate_launch_description():
     ld.add_action(declare_autostart_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
+    ld.add_action(declare_initial_pose_x_cmd)
+    ld.add_action(declare_initial_pose_y_cmd)
+    ld.add_action(declare_initial_pose_yaw_cmd)
 
     # Running Map Saver Server
     ld.add_action(start_map_saver_server_cmd)

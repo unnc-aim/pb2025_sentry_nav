@@ -40,6 +40,9 @@ def generate_launch_description():
     container_name_full = (namespace, "/", container_name)
     use_respawn = LaunchConfiguration("use_respawn")
     log_level = LaunchConfiguration("log_level")
+    initial_pose_x = LaunchConfiguration("initial_pose_x")
+    initial_pose_y = LaunchConfiguration("initial_pose_y")
+    initial_pose_yaw = LaunchConfiguration("initial_pose_yaw")
 
     lifecycle_nodes = ["map_server"]
 
@@ -116,6 +119,24 @@ def generate_launch_description():
         "log_level", default_value="info", description="log level"
     )
 
+    declare_initial_pose_x_cmd = DeclareLaunchArgument(
+        "initial_pose_x",
+        default_value="0.7",
+        description="Robot initial x position in the map frame",
+    )
+
+    declare_initial_pose_y_cmd = DeclareLaunchArgument(
+        "initial_pose_y",
+        default_value="0.5",
+        description="Robot initial y position in the map frame",
+    )
+
+    declare_initial_pose_yaw_cmd = DeclareLaunchArgument(
+        "initial_pose_yaw",
+        default_value="0.0",
+        description="Robot initial yaw in the map frame",
+    )
+
     start_point_lio_node = Node(
         package="point_lio",
         executable="pointlio_mapping",
@@ -150,7 +171,15 @@ def generate_launch_description():
                 output="screen",
                 respawn=use_respawn,
                 respawn_delay=2.0,
-                parameters=[configured_params, {"prior_pcd_file": prior_pcd_file}],
+                parameters=[
+                    configured_params,
+                    {
+                        "prior_pcd_file": prior_pcd_file,
+                        "initial_pose_x": initial_pose_x,
+                        "initial_pose_y": initial_pose_y,
+                        "initial_pose_yaw": initial_pose_yaw,
+                    },
+                ],
                 arguments=["--ros-args", "--log-level", log_level],
             ),
             Node(
@@ -182,7 +211,15 @@ def generate_launch_description():
                 package="small_gicp_relocalization",
                 plugin="small_gicp_relocalization::SmallGicpRelocalizationNode",
                 name="small_gicp_relocalization",
-                parameters=[configured_params, {"prior_pcd_file": prior_pcd_file}],
+                parameters=[
+                    configured_params,
+                    {
+                        "prior_pcd_file": prior_pcd_file,
+                        "initial_pose_x": initial_pose_x,
+                        "initial_pose_y": initial_pose_y,
+                        "initial_pose_yaw": initial_pose_yaw,
+                    },
+                ],
             ),
             ComposableNode(
                 package="nav2_lifecycle_manager",
@@ -217,6 +254,9 @@ def generate_launch_description():
     ld.add_action(declare_container_name_cmd)
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
+    ld.add_action(declare_initial_pose_x_cmd)
+    ld.add_action(declare_initial_pose_y_cmd)
+    ld.add_action(declare_initial_pose_yaw_cmd)
 
     # Add the actions to launch all of the localiztion nodes
     ld.add_action(start_point_lio_node)

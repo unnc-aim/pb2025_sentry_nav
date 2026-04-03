@@ -14,10 +14,16 @@
 
 
 import os
+from datetime import datetime
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    LogInfo,
+    SetEnvironmentVariable,
+)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, TextSubstitution
@@ -45,6 +51,24 @@ def generate_launch_description():
     rviz_config_file = LaunchConfiguration("rviz_config_file")
     use_robot_state_pub = LaunchConfiguration("use_robot_state_pub")
     use_rviz = LaunchConfiguration("use_rviz")
+    log_dir = LaunchConfiguration("log_dir")
+    initial_pose_x = LaunchConfiguration("initial_pose_x")
+    initial_pose_y = LaunchConfiguration("initial_pose_y")
+    initial_pose_yaw = LaunchConfiguration("initial_pose_yaw")
+
+    default_log_dir = os.path.abspath(
+        os.path.join(
+            bringup_dir,
+            "..",
+            "..",
+            "..",
+            "..",
+            "log",
+            "nav_runtime",
+            datetime.now().strftime("%Y%m%d_%H%M%S"),
+        )
+    )
+    os.makedirs(default_log_dir, exist_ok=True)
 
     # Declare the launch arguments
     declare_namespace_cmd = DeclareLaunchArgument(
@@ -133,6 +157,33 @@ def generate_launch_description():
         "use_rviz", default_value="True", description="Whether to start RVIZ"
     )
 
+    declare_log_dir_cmd = DeclareLaunchArgument(
+        "log_dir",
+        default_value=default_log_dir,
+        description="Directory used to store ROS runtime log files for this navigation session",
+    )
+
+    declare_initial_pose_x_cmd = DeclareLaunchArgument(
+        "initial_pose_x",
+        default_value="0.7",
+        description="Robot initial x position in the map frame",
+    )
+
+    declare_initial_pose_y_cmd = DeclareLaunchArgument(
+        "initial_pose_y",
+        default_value="0.5",
+        description="Robot initial y position in the map frame",
+    )
+
+    declare_initial_pose_yaw_cmd = DeclareLaunchArgument(
+        "initial_pose_yaw",
+        default_value="0.0",
+        description="Robot initial yaw in the map frame",
+    )
+
+    ros_log_dir_envvar = SetEnvironmentVariable("ROS_LOG_DIR", log_dir)
+    log_info_action = LogInfo(msg=["[NAV] ROS logs will be saved to: ", log_dir])
+
     # Create our own temporary YAML files that include substitutions
 
     configured_params = ParameterFile(
@@ -188,6 +239,9 @@ def generate_launch_description():
             "autostart": autostart,
             "use_composition": use_composition,
             "use_respawn": use_respawn,
+            "initial_pose_x": initial_pose_x,
+            "initial_pose_y": initial_pose_y,
+            "initial_pose_yaw": initial_pose_yaw,
         }.items(),
     )
 
@@ -215,7 +269,13 @@ def generate_launch_description():
     ld.add_action(declare_rviz_config_file_cmd)
     ld.add_action(declare_use_robot_state_pub_cmd)
     ld.add_action(declare_use_rviz_cmd)
+    ld.add_action(declare_log_dir_cmd)
     ld.add_action(declare_use_respawn_cmd)
+    ld.add_action(declare_initial_pose_x_cmd)
+    ld.add_action(declare_initial_pose_y_cmd)
+    ld.add_action(declare_initial_pose_yaw_cmd)
+    ld.add_action(ros_log_dir_envvar)
+    ld.add_action(log_info_action)
 
     # Add the actions to launch all of the navigation nodes
     ld.add_action(start_robot_state_publisher_cmd)
